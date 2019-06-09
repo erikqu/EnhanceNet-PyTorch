@@ -1,15 +1,24 @@
-from model import * 
-from dataloader import * 
-
 import os
 import numpy as np
 import math
 import torchvision
+from torchvision.utils import save_image, make_grid
+import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
 import cv2
-import torch.nn as nn
-import torch
+from model import * 
+from dataloader import * 
+
+
+'''
+EnhanceNet Implementation by Erik Quintanilla 
+
+Single Image Super Resolution 
+
+https://arxiv.org/abs/1612.07919/
+'''
 
 #hyperparams 
 cuda = torch.cuda.is_available()
@@ -19,7 +28,7 @@ width = 64
 channels = 3
 lr = .0002 
 b1 = .5 
-b2 = .999
+b2 = .9
 batch_size = 3
 n_epochs= 5
 hr_shape = (height, width)
@@ -50,6 +59,8 @@ Tensor = torch.cuda.FloatTensor
 
 for epoch in range(n_epochs):
 	for i, (lr, hr) in enumerate(train_loader):
+	
+		#Variables so torch plays nice with autograd, valid and fake for discriminator 
 		lr = Variable(lr.type(Tensor))
 		hr = Variable(hr.type(Tensor))
 		valid = Variable(Tensor(np.ones((batch_size, *discriminator.output_shape))), requires_grad=False)
@@ -67,7 +78,7 @@ for epoch in range(n_epochs):
 		verdict = discriminator(generated_hr) 
 		
 		#fetch loss
-		g_loss = loss(verdict, valid) 
+		g_loss = loss(verdict, valid) + loss(generated_hr, hr)
 		
 		#backpop that loss
 		g_loss.backward()
@@ -91,12 +102,12 @@ for epoch in range(n_epochs):
 		d_opti.step()
 		
 		print("D: %f G: %f \t Epoch: (%i/%i) Batch: (%i/%i)" %(d_loss.item(), g_loss.item(), epoch, n_epochs, i, len(train_loader)))
-		if batches_done % 50 == 0:
+		if i % 50 == 0:
 			#put the channels back in order!
-			gen_hr = gen_hr[:, [2,1,0]]
+			generated_hr = generated_hr[:, [2,1,0]]
 			#fancy grid so we can view
-			gen_hr = make_grid(gen_hr, nrow=1, normalize=True)
-			save_image(gen_hr, "samples/%d.png" % batches_done, normalize=False)
+			generated_hr = make_grid(generated_hr, nrow=1, normalize=True)
+			save_image(generated_hr, "samples/%d.png" % i, normalize=False)
 		
 
 

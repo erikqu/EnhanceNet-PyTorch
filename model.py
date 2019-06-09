@@ -11,7 +11,7 @@ class GELU(nn.Module):
 	GELU activation approx. courtesy of 
 	https://arxiv.org/pdf/1606.08415.pdf
 	
-	(note numba)
+	Numba here provides a significant performance bump
 	"""
 	@jit
 	def forward(self, x):
