@@ -1,9 +1,9 @@
+from torch.utils.data import Dataset
 import torch
-from torch.utils import data
-from torch.utils.data import DataLoader
 import cv2
+import numpy as np 
 
-class Dataset(data.Dataset):
+class Dataset(Dataset):
 	'''
 	LR = low resolution image
 	HR = high resolution image 

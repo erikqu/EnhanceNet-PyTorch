@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 from torchvision.models import vgg19
+import torchvision 
 import math
 from numba import jit
 
@@ -34,9 +35,11 @@ class Generator(nn.Module):
 	def __init__(self, in_channels=3, out_channels=3, residual_blocks=10):
 		super(Generator, self).__init__()
 		self.conv1 = nn.Sequential(
-						nn.Conv2d(in_channels, 64, kernel_size=9, stride=1, padding=4), 
+						nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1), 
 						GELU())
-
+		self.conv2 = nn.Sequential(
+				nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1), 
+				GELU())
 		# Residual blocks
 		residuals = []
 		for _ in range(residual_blocks):
@@ -52,16 +55,18 @@ class Generator(nn.Module):
 				nn.Conv2d(64, 64, 3, 1, 1),
 				GELU())
 		self.conv3 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1), GELU())
-		self.conv4 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=4))
+		self.conv4 = nn.Sequential(nn.Conv2d(64, 3, kernel_size=3, stride=1, padding=1))
+		self.resize = nn.Upsample(scale_factor=4, mode='bicubic')
 
 	def forward(self, x):
 		out = self.conv1(x)
-		out = self.residuals(out1)
+		out = self.residuals(out)
 		out = self.conv2(out)
-		i_bicubic= self.upsample(out)
+		out= self.upsample(out)
 		out = self.conv3(out)
 		i_res = self.conv4(out) 
-		out = torch.add(i_bicubic + i_res)
+		i_bicubic = self.resize(x)
+		out = torch.add(i_bicubic ,i_res)
 		return out
 		
 class Discriminator(nn.Module):
