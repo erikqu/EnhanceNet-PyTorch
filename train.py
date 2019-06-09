@@ -35,6 +35,8 @@ batch_size = 4
 n_epochs= 5
 hr_shape = (height, width)
 
+save_interval = 100 
+
 #build models 
 generator = Generator(residual_blocks=10)
 discriminator = Discriminator(input_shape=(channels, *hr_shape))
@@ -106,7 +108,7 @@ for epoch in range(n_epochs):
 		d_opti.step()
 		
 		print("D: %f G: %f \t Epoch: (%i/%i) Batch: (%i/%i)" %(d_loss.item(), g_loss.item(), epoch, n_epochs, i, len(train_loader)))
-		if i % 50 == 0:
+		if i % save_interval == 0:
 			#put the channels back in order!
 			generated_hr = generated_hr[:, [2,1,0]]
 			#fancy grid so we can view

@@ -4,18 +4,6 @@ import torch
 from torchvision.models import vgg19
 import torchvision 
 import math
-from numba import jit
-
-class GELU(nn.Module):
-	"""
-	GELU activation approx. courtesy of 
-	https://arxiv.org/pdf/1606.08415.pdf
-	
-	Numba here provides a significant performance bump
-	"""
-	@jit
-	def forward(self, x):
-		return 0.5 * x * (1 + torch.tanh(math.sqrt(2 / math.pi) * (x + 0.044715 * torch.pow(x, 3))))
 
 
 class ResidualBlock(nn.Module):
@@ -23,7 +11,7 @@ class ResidualBlock(nn.Module):
 		super(ResidualBlock, self).__init__()
 		self.conv_block = nn.Sequential(
 			nn.Conv2d(in_features, in_features, kernel_size=3, stride=1, padding=1),
-			GELU(),
+			nn.ReLU(),
 			nn.Conv2d(in_features, in_features, kernel_size=3, stride=1, padding=1),
 		)
 
@@ -36,10 +24,10 @@ class Generator(nn.Module):
 		super(Generator, self).__init__()
 		self.conv1 = nn.Sequential(
 						nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1), 
-						GELU())
+						nn.ReLU())
 		self.conv2 = nn.Sequential(
 				nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1), 
-				GELU())
+				nn.ReLU())
 		# Residual blocks
 		residuals = []
 		for _ in range(residual_blocks):
@@ -50,11 +38,11 @@ class Generator(nn.Module):
 		self.upsample = nn.Sequential(
 				nn.Upsample(scale_factor=2),
 				nn.Conv2d(64, 64, 3, 1, 1),
-				GELU(),
+				nn.ReLU(),
 				nn.Upsample(scale_factor=2),
 				nn.Conv2d(64, 64, 3, 1, 1),
-				GELU())
-		self.conv3 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1), GELU())
+				nn.ReLU())
+		self.conv3 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1), nn.ReLU())
 		self.conv4 = nn.Sequential(nn.Conv2d(64, 3, kernel_size=3, stride=1, padding=1))
 		self.resize = nn.Upsample(scale_factor=4, mode='bicubic',align_corners=True)
 
@@ -80,13 +68,10 @@ class Discriminator(nn.Module):
 		def discriminator_block(in_filters, out_filters, first_block=False):
 			layers = []
 			layers.append(nn.Conv2d(in_filters, out_filters, kernel_size=3, stride=1, padding=1))
-			#layers.append(nn.Dropout(0.3))
 			if not first_block:
 				layers.append(nn.BatchNorm2d(out_filters))
 			layers.append(nn.LeakyReLU(0.2, inplace=True))
 			layers.append(nn.Conv2d(out_filters, out_filters, kernel_size=3, stride=2, padding=1))
-			#layers.append(nn.Dropout(0.3))
-			#layers.append(nn.BatchNorm2d(out_filters))
 			layers.append(nn.LeakyReLU(0.2, inplace=True))
 			return layers
 
@@ -102,22 +87,6 @@ class Discriminator(nn.Module):
 	def forward(self, img):
 		return self.model(img)
 		
-		
-class PerceptualLoss(nn.Module):
-	def __init__(self):
-		super(PerceptualLoss, self).__init__()
-		self.model = nn.Sequential(
-			nn.Conv2d(3, 8, 2, stride=3, padding=1),  
-			nn.ReLU(True),
-			nn.MaxPool2d(2, stride=2), 
-			nn.Conv2d(8, 16, 3, stride=2, padding=1), 
-			nn.ReLU(True),
-			nn.MaxPool2d(2, stride=1),  
-			nn.Conv2d(16, 64, 3, stride=2, padding=1),
-			nn.ReLU(True),
-		) 
 
-	def forward(self, x):
-		return self.model(x)
 		
 		
