@@ -51,10 +51,10 @@ g_opti = torch.optim.Adam(generator.parameters(), lr=lr, betas=(b1, b2))
 d_opti = torch.optim.Adam(discriminator.parameters(), lr=lr, betas=(b1, b2))
 
 #set data geneator 
-curmovie = "bladerunner"
-imagedir = np.load(curmovie + "_ids.npy")
-lowres = "M:/Experiments/OLSS/frames/" + curmovie + "_128/"
-highres = "M:/Experiments/OLSS/frames/" + curmovie + "_512/"
+curdir = ""
+imagedir = np.load(curdir + "_ids.npy")
+lowres = "M:/" + curdir + "_128/"
+highres = "M:/" + curdir + "_512/"
 gen = Dataset(ids = imagedir, lr = lowres, hr = highres)
 train_loader = DataLoader(gen, batch_size=batch_size, shuffle=True, num_workers=0)
 train_loader = iter(train_loader)
