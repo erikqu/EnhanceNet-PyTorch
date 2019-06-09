@@ -1,5 +1,5 @@
 # EnhanceNet-PyTorch
-A PyTorch implementation of ENET for Single Image Super Resolution (SISR)
+A PyTorch implementation of ENET-PA for Single Image Super Resolution (SISR).
 
 ![Screenshot](images/diagram.JPG)
 
