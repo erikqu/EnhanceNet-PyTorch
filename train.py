@@ -54,13 +54,23 @@ g_opti = torch.optim.Adam(generator.parameters(), lr=lr, betas=(b1, b2))
 d_opti = torch.optim.Adam(discriminator.parameters(), lr=lr, betas=(b1, b2))
 
 #set data geneator 
-curmovie = "socialnetwork"
+curmovie = "bladerunner"
 imagedir = np.load(curmovie + "_ids.npy")
 lowres = "M:/Experiments/OLSS/frames/" + curmovie + "_128/"
 highres = "M:/Experiments/OLSS/frames/" + curmovie + "_512/"
 gen = Dataset(ids = imagedir, lr = lowres, hr = highres)
 train_loader = DataLoader(gen, batch_size=batch_size, shuffle=True, num_workers=0)
 train_loader = iter(train_loader)
+
+load_weights = True 
+
+if load_weights:
+	print("Loading old weights...")
+	tmp = torch.load("M:/Experiments/EnhanceNet-PyTorch/saved_models/generator_0_2400.pth")
+	generator.load_state_dict(tmp)
+	tmp = torch.load("M:/Experiments/EnhanceNet-PyTorch/saved_models/discriminator_0_2400.pth")
+	discriminator.load_state_dict(tmp)
+	print("Best old weights loaded!")
 
 Tensor = torch.cuda.FloatTensor
 
