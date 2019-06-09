@@ -18,14 +18,15 @@ class Dataset(data.Dataset):
 	def __len__(self):
 		return len(self.dir)
 	def __getitem__(self, index):
-		file = self.dir[index] 
-		lower = cv2.imread(self.lr + file,1)
-		higher = cv2.imread(self.hr  + file,1) 
+		filename = self.dir[index] 
+		lower = cv2.imread(self.lr + filename,1)
+		higher = cv2.imread(self.hr  + filename,1) 
 		lower = np.asarray(lower) 
 		higher = np.asarray(higher)
-		#print(lower.shape)
+		#transpose so pytorch plays nice 
 		lower= lower.transpose((2, 0, 1))
 		higher = higher.transpose((2, 0, 1))		
-		lower = torch.from_numpy(lower)
-		higher =  torch.from_numpy(higher)
+		#pass numpy arrays to torch and make float tensors.
+		lower = torch.from_numpy(lower).float()
+		higher =  torch.from_numpy(higher).float()
 		return lower, higher
