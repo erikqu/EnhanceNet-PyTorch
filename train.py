@@ -13,11 +13,11 @@ import torch
 
 #hyperparams 
 cuda = torch.cuda.is_available()
-torch.cuda.empty_cache()
+#torch.cuda.empty_cache()
 height = 64
 width = 64
 channels = 3
-lr = .008
+lr = .0002
 b1 = .5 
 b2 = .999
 batch_size = 3
@@ -25,7 +25,7 @@ n_epochs= 5
 hr_shape = (height, width)
 
 #build models 
-generator = Generator()
+generator = Generator(residual_blocks=15)
 discriminator = Discriminator(input_shape=(channels, *hr_shape))
 
 #send to gpu 
@@ -83,7 +83,7 @@ for epoch in range(n_epochs):
 		d_loss.backward() 
 		d_opti.step()
 		
-		print(d_loss)
+		print("D: %f G: %f \t Epoch: (%i/%i) Batch: (%i/%i)" %(d_loss.item(), g_loss.item(), epoch, n_epochs, i, len(train_loader)))
 
 		
 
