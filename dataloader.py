@@ -21,8 +21,6 @@ class Dataset(Dataset):
 		filename = self.dir[index] 
 		lower = cv2.imread(self.lr + filename,1)
 		higher = cv2.imread(self.hr  + filename,1) 
-		lower = np.asarray(lower) 
-		higher = np.asarray(higher)
 		#transpose so pytorch plays nice 
 		lower= lower.transpose((2, 0, 1))
 		higher = higher.transpose((2, 0, 1))		

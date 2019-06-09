@@ -103,6 +103,21 @@ class Discriminator(nn.Module):
 		return self.model(img)
 		
 		
-		
+class PerceptualLoss(nn.Module):
+	def __init__(self):
+		super(PerceptualLoss, self).__init__()
+		self.model = nn.Sequential(
+			nn.Conv2d(3, 8, 2, stride=3, padding=1),  
+			nn.ReLU(True),
+			nn.MaxPool2d(2, stride=2), 
+			nn.Conv2d(8, 16, 3, stride=2, padding=1), 
+			nn.ReLU(True),
+			nn.MaxPool2d(2, stride=1),  
+			nn.Conv2d(16, 64, 3, stride=2, padding=1),
+			nn.ReLU(True),
+		) 
+
+	def forward(self, x):
+		return self.model(x)
 		
 		

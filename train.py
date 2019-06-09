@@ -3,6 +3,7 @@ import numpy as np
 import math
 import torchvision
 from torchvision.utils import save_image, make_grid
+from torchvision.models import vgg19
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -11,13 +12,14 @@ import cv2
 from model import * 
 from dataloader import * 
 
-
 '''
-EnhanceNet Implementation by Erik Quintanilla 
+EnhanceNet Implementation in PyTorch by Erik Quintanilla 
 
 Single Image Super Resolution 
 
 https://arxiv.org/abs/1612.07919/
+
+This program assumes GPU.
 '''
 
 #hyperparams 
@@ -26,21 +28,23 @@ cuda = torch.cuda.is_available()
 height = 64
 width = 64
 channels = 3
-lr = .0002 
+lr = .0009 
 b1 = .5 
 b2 = .9
-batch_size = 3
+batch_size = 4
 n_epochs= 5
 hr_shape = (height, width)
 
 #build models 
-generator = Generator(residual_blocks=15)
+generator = Generator(residual_blocks=10)
 discriminator = Discriminator(input_shape=(channels, *hr_shape))
+#perceptualLoss = PerceptualLoss()
 
 #send to gpu 
 generator = generator.cuda()
 discriminator = discriminator.cuda()
 loss = torch.nn.MSELoss().cuda() 
+#perceptualLoss.cuda()
 
 #set optimizers 
 g_opti = torch.optim.Adam(generator.parameters(), lr=lr, betas=(b1, b2))
@@ -108,6 +112,9 @@ for epoch in range(n_epochs):
 			#fancy grid so we can view
 			generated_hr = make_grid(generated_hr, nrow=1, normalize=True)
 			save_image(generated_hr, "samples/%d.png" % i, normalize=False)
+			#save generator and discriminator 
+			torch.save(generator.state_dict(), "saved_models/generator_%d.pth" % epoch)
+			torch.save(discriminator.state_dict(), "saved_models/discriminator_%d.pth" % epoch)
 		
 
 
