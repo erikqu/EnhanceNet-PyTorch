@@ -1,13 +1,10 @@
 import os
 import numpy as np
-import math
-import torchvision
-from torchvision.utils import save_image, make_grid
-from torchvision.models import vgg19
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
+from torchvision.utils import save_image, make_grid
 import cv2
 from model import * 
 from dataloader import * 
@@ -62,13 +59,13 @@ gen = Dataset(ids = imagedir, lr = lowres, hr = highres)
 train_loader = DataLoader(gen, batch_size=batch_size, shuffle=True, num_workers=0)
 train_loader = iter(train_loader)
 
-load_weights = True 
+load_weights = True
 
 if load_weights:
 	print("Loading old weights...")
-	tmp = torch.load("M:/Experiments/EnhanceNet-PyTorch/saved_models/generator_0_2400.pth")
+	tmp = torch.load("M:/Experiments/EnhanceNet-PyTorch/saved_models/generator_0_4800.pth")
 	generator.load_state_dict(tmp)
-	tmp = torch.load("M:/Experiments/EnhanceNet-PyTorch/saved_models/discriminator_0_2400.pth")
+	tmp = torch.load("M:/Experiments/EnhanceNet-PyTorch/saved_models/discriminator_0_4800.pth")
 	discriminator.load_state_dict(tmp)
 	print("Best old weights loaded!")
 
@@ -106,7 +103,7 @@ for epoch in range(n_epochs):
 		real_features = features_5(hr)
 		feature_loss_5 = loss(generated_features, real_features.detach())
 		
-		total_feature_loss = feature_loss_2 + feature_loss_5
+		total_feature_loss = (.2*feature_loss_2) + feature_loss_5
 		
 		g_loss = loss(verdict, valid) +  total_feature_loss #ENET-PA
 		
@@ -135,9 +132,13 @@ for epoch in range(n_epochs):
 		if i % save_interval == 0:
 			#put the channels back in order!
 			generated_hr = generated_hr[:, [2,1,0]]
+			hr = hr[:, [2,1,0]]
 			#fancy grid so we can view
 			generated_hr = make_grid(generated_hr, nrow=1, normalize=True)
-			save_image(generated_hr, "samples/%d.png" % i, normalize=False)
+			hr = make_grid(hr, nrow=1, normalize=True)
+			tmp = torch.cat((hr, generated_hr), -1)
+			save_image(tmp, "samples/%d.png" % i, normalize=False)
+			#save_image(lr, "samples/originals/%d.png" % i, normalize=False)
 			#save generator and discriminator 
 			torch.save(generator.state_dict(), "saved_models/generator_%d.pth" % epoch)
 			torch.save(discriminator.state_dict(), "saved_models/discriminator_%d.pth" % epoch)

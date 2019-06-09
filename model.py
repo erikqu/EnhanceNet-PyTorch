@@ -1,9 +1,7 @@
 import torch.nn as nn
-import torch.nn.functional as F
 import torch
 from torchvision.models import vgg19
 import torchvision 
-import math
 
 
 class ResidualBlock(nn.Module):
@@ -36,10 +34,10 @@ class Generator(nn.Module):
 		
 		#nearest neighbor upsample 
 		self.upsample = nn.Sequential(
-				nn.Upsample(scale_factor=2),
+				nn.Upsample(scale_factor=2, mode='bicubic'),
 				nn.Conv2d(64, 64, 3, 1, 1),
 				nn.ReLU(),
-				nn.Upsample(scale_factor=2),
+				nn.Upsample(scale_factor=2, mode='bicubic'),
 				nn.Conv2d(64, 64, 3, 1, 1),
 				nn.ReLU())
 		self.conv3 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1), nn.ReLU())
