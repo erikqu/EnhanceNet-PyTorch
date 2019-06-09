@@ -55,36 +55,48 @@ for epoch in range(n_epochs):
 		valid = Variable(Tensor(np.ones((batch_size, *discriminator.output_shape))), requires_grad=False)
 		fake = Variable(Tensor(np.zeros((batch_size, *discriminator.output_shape))), requires_grad=False)
 		
-		#Generator 
+		'''Generator'''
+		
+		#reset grads 
 		g_opti.zero_grad() 
 		
+		#get our "fake" images from our generator
 		generated_hr = generator(lr) 
 		
+		#what does the discriminator think of these fake images?
 		verdict = discriminator(generated_hr) 
 		
+		#fetch loss
 		g_loss = loss(verdict, valid) 
 		
-		g_loss.backward() 
+		#backpop that loss
+		g_loss.backward()
+		#update our optimizer 
 		g_opti.step()
 
-		#Discriminator 
+		'''Discriminator'''
 
 		d_opti.zero_grad() 
+		
+		#we do a shuffle on the true and fake images so it's not trivial which is which.
 		hr_imgs = torch.cat([discriminator(hr), discriminator(generated_hr.detach())], dim=0)
 		hr_labels = torch.cat([valid, fake], dim=0)
-		
 		idxs = list(range(len(hr_labels)))
 		idxs = np.random.shuffle(idxs)
 		hr_imgs = hr_imgs[idxs] 
 		hr_labels = hr_labels[idxs]
 
-		d_loss = loss(hr_imgs, hr_labels)
-		
+		d_loss = loss(hr_imgs, hr_labels)		
 		d_loss.backward() 
 		d_opti.step()
 		
 		print("D: %f G: %f \t Epoch: (%i/%i) Batch: (%i/%i)" %(d_loss.item(), g_loss.item(), epoch, n_epochs, i, len(train_loader)))
-
+		if batches_done % 50 == 0:
+			#put the channels back in order!
+			gen_hr = gen_hr[:, [2,1,0]]
+			#fancy grid so we can view
+			gen_hr = make_grid(gen_hr, nrow=1, normalize=True)
+			save_image(gen_hr, "samples/%d.png" % batches_done, normalize=False)
 		
 
 
