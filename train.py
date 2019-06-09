@@ -31,7 +31,7 @@ channels = 3
 lr = .0009 
 b1 = .5 
 b2 = .9
-batch_size = 4
+batch_size = 3
 n_epochs= 5
 hr_shape = (height, width)
 
@@ -40,13 +40,14 @@ save_interval = 100
 #build models 
 generator = Generator(residual_blocks=10)
 discriminator = Discriminator(input_shape=(channels, *hr_shape))
-#perceptualLoss = PerceptualLoss()
-
+features_2 = Vgg_Features(pool_layer_num = 9) #9 here is the actual index, but it's the second pooling layer 
+features_5 = Vgg_Features(pool_layer_num = 36) #36 here is the actual index, but it's the fifth pooling layer 
 #send to gpu 
 generator = generator.cuda()
 discriminator = discriminator.cuda()
 loss = torch.nn.MSELoss().cuda() 
-#perceptualLoss.cuda()
+features_2.cuda()
+features_5.cuda() 
 
 #set optimizers 
 g_opti = torch.optim.Adam(generator.parameters(), lr=lr, betas=(b1, b2))
@@ -84,7 +85,20 @@ for epoch in range(n_epochs):
 		verdict = discriminator(generated_hr) 
 		
 		#fetch loss
-		g_loss = loss(verdict, valid) + loss(generated_hr, hr)
+		
+		#perceptual loss uses both the second and fifth pooling layer.
+		#_2, _5 here denote the pooling layer
+		generated_features = features_2(generated_hr)
+		real_features = features_2(hr)
+		feature_loss_2 = loss(generated_features, real_features.detach())
+		
+		generated_features = features_5(generated_hr)
+		real_features = features_5(hr)
+		feature_loss_5 = loss(generated_features, real_features.detach())
+		
+		total_feature_loss = feature_loss_2 + feature_loss_5
+		
+		g_loss = loss(verdict, valid) +  total_feature_loss #ENET-PA
 		
 		#backpop that loss
 		g_loss.backward()

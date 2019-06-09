@@ -28,7 +28,7 @@ class Generator(nn.Module):
 		self.conv2 = nn.Sequential(
 				nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1), 
 				nn.ReLU())
-		# Residual blocks
+		#Residual blocks
 		residuals = []
 		for _ in range(residual_blocks):
 			residuals.append(ResidualBlock(64))
@@ -86,6 +86,24 @@ class Discriminator(nn.Module):
 
 	def forward(self, img):
 		return self.model(img)
+		
+class Vgg_Features(nn.Module):
+	def __init__(self, pool_layer_num = 9):
+		'''
+		To capture bothlow-level and high-level features, 
+		we use a combination ofthe second and fifth pooling 
+		layers and compute the MSEon their feature activations. 
+		
+		- Sajjadi et al.
+		'''
+		
+		#we have maxpooling layers at [4,9,18,27,36]
+		super(Vgg_Features, self).__init__()
+		model = vgg19(pretrained=True)
+		self.features = nn.Sequential(*list(model.features.children())[:pool_layer_num])
+
+	def forward(self, img):
+		return self.features(img)
 		
 
 		
