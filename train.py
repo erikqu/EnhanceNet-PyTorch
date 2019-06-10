@@ -22,8 +22,8 @@ This program assumes GPU.
 #hyperparams 
 cuda = torch.cuda.is_available()
 #torch.cuda.empty_cache()
-height = 64
-width = 64
+height = 128
+width = 128
 channels = 3
 lr = .0009 
 b1 = .5 
